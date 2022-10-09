@@ -1,44 +1,45 @@
 import { BoxGeometry, Mesh, MeshStandardMaterial, Vector2, Vector3 } from "three";
 import { Constants } from "../../util/Constants";
+import { fmod } from "../../util/Math";
 import { Entity } from "./Entity";
 
 class Direction {
-	public static UP = new Direction("y", 1);
-	public static DOWN = new Direction("y", -1);
-	public static LEFT = new Direction("x", -1);
-	public static RIGHT = new Direction("x", 1);;
+	public static UP = new Direction(new Vector3(0, Constants.SNAKE_VELOCITY, 0));
+	public static DOWN = new Direction(new Vector3(0, -Constants.SNAKE_VELOCITY, 0));
+	public static LEFT = new Direction(new Vector3(-Constants.SNAKE_VELOCITY, 0, 0));
+	public static RIGHT = new Direction(new Vector3(Constants.SNAKE_VELOCITY, 0, 0));
 	//public static NONE: DirectionNode = { axis: "none", value: 0 };
-	public axis: "x" | "y";
-	public value: number;
-	private constructor(axis: "x" | "y", value: number) {
-		this.axis = axis;
-		this.value = value;
+	public velocity: Vector3;
+	private constructor(velocity: Vector3) {
+		this.velocity = velocity
 	}
 }
 
 export class Snake implements Entity {
-	private body: Array<Mesh>;
-	private velocity: Vector2;
+	private tail: Array<Mesh>;
+	private head: Mesh;
+	//private velocity: Vector3;
 	private moveActions: Array<Direction>
 	private direction: Direction;
 
 	constructor() {
-		this.body = new Array<Mesh>();
-		this.velocity = new Vector2(Constants.SNAKE_VELOCITY, 0);
+		this.tail = new Array<Mesh>();
+		this.levelUp()
+		this.levelUp()
+		this.levelUp()
+
+		this.head = this.createHead();
+		//this.velocity = new Vector3(Constants.SNAKE_VELOCITY, 0, 0);
 		this.moveActions = new Array<Direction>();
 		this.direction = Direction.DOWN;
 		this.initInputController();
-		this.initializeSnake();
 	}
-	private initializeSnake() {
+	private createHead() {
 		const material = new MeshStandardMaterial({ color: 0x00ff00 });
 		const geometry = new BoxGeometry(Constants.BLOCK_SIZE, Constants.BLOCK_SIZE, Constants.BLOCK_SIZE);
 		const head = new Mesh(geometry, material);
 		head.position.setZ(Constants.Z_AXIS_FOCUS_POSITION);
-		this.body.push(head)
-		for (let i = 0; i < 1; i++) {
-			this.levelUp();
-		}
+		return head;
 	}
 	private initInputController() {
 		document.addEventListener('keydown', (event) => {
@@ -61,25 +62,22 @@ export class Snake implements Entity {
 
 	}
 
-	private checkForInput() {
-		let head = this.body.at(0)!;
-		if (head.position.x % Constants.BLOCK_SIZE == 0
-			&& head.position.y % Constants.BLOCK_SIZE == 0
-			&& this.moveActions.length > 0) {
+	private handleUserInput() {
+		if (this.moveActions.length > 0 && this.head.position.x % Constants.BLOCK_SIZE == 0 && this.head.position.y % Constants.BLOCK_SIZE == 0) {
 			for (let action of this.moveActions) {
 				this.direction = action;
 				switch (action) {
 					case Direction.UP:
-						this.velocity = new Vector2(0, Constants.SNAKE_VELOCITY);
+						this.direction = Direction.UP;
 						break;
 					case Direction.DOWN:
-						this.velocity = new Vector2(0, -Constants.SNAKE_VELOCITY);
+						this.direction = Direction.DOWN;
 						break;
 					case Direction.LEFT:
-						this.velocity = new Vector2(-Constants.SNAKE_VELOCITY, 0);
+						this.direction = Direction.LEFT;
 						break;
 					case Direction.RIGHT:
-						this.velocity = new Vector2(Constants.SNAKE_VELOCITY, 0);
+						this.direction = Direction.RIGHT;
 				};
 				this.moveActions.shift();
 			}
@@ -91,39 +89,31 @@ export class Snake implements Entity {
 		const geometry = new BoxGeometry(Constants.BLOCK_SIZE, Constants.BLOCK_SIZE, Constants.BLOCK_SIZE);
 		const newBodyPart = new Mesh(geometry, material);
 		newBodyPart.position.setZ(Constants.Z_AXIS_FOCUS_POSITION);
-		this.body.push(newBodyPart);
+		for (let i = 0; i < Constants.BLOCK_SIZE; i++) {
+			this.tail.push(newBodyPart.clone());
+		}
+
 	}
 
 	private move() {
-		var next: Vector3 | null = null;
-		for (let i = 0; i < this.body.length; i++) {
-			let cube = this.body.at(i)!;
-			var temp = null;
-			if (!next) {
-				//head
-				next = new Vector3(cube.position.x, cube.position.y, cube.position.z);
-				cube.position.add(new Vector3(this.velocity.x, this.velocity.y, 0));
-			} else {
-				//other body parts
-				temp = { x: cube.position.x, y: cube.position.y, z: cube.position.z };
-				//cube.position.set(next.x - (this.velocity.x * Constants.TILE_SIZE), next.y - (this.velocity.y * Constants.TILE_SIZE), next.z);
-				cube.position.setX(next.x - this.velocity.x);
-				cube.position.setY(next.y -	 this.velocity.y);
-				next = new Vector3(temp.x, temp.y, temp.z);
-			}
-
-			//this.renderCube(cube);
-		};
+		let prevHeadPos = this.head.position.clone();
+		this.head.position.add(this.direction.velocity);
+		this.tail.forEach((value, key) => {
+			let temp = value.position.clone();
+			value.position.copy(prevHeadPos);
+			prevHeadPos = temp;
+		});
 	}
 
 	tick(delta: number): void {
+		this.handleUserInput();
 		this.move();
-		this.checkForInput();
 	}
 
 	public getEntityMeshes() {
 		let arr = new Array<Mesh>();
-		this.body.forEach((value, key) => {
+		arr.push(this.head);
+		this.tail.forEach((value, key) => {
 			arr.push(value);
 		});
 		return arr;

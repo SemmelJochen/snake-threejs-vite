@@ -2,6 +2,7 @@ import { Clock, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three';
 import { Entity } from '../game/components/Entity';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Snake } from '../game/components/Snake';
+import { Constants } from '../util/Constants';
 
 const clock = new Clock();
 
@@ -41,7 +42,7 @@ class Loop {
 
     for (const object of this.updatables) {
       if (object instanceof Snake) {
-        var relativeCameraOffset = new Vector3(0, -50, 200);
+        var relativeCameraOffset = Constants.CAMERA_POSITITON.clone();
         let head = object.getEntityMeshes()[0];
         var cameraOffset = relativeCameraOffset.applyMatrix4(head.matrixWorld)
         let x = cameraOffset.x;
