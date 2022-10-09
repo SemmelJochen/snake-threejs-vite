@@ -1,5 +1,5 @@
 import { PerspectiveCamera } from 'three';
-import { Constants } from './Constants';
+import { Constants } from '../util/Constants';
 
 function createCamera() {
 	const camera = new PerspectiveCamera(

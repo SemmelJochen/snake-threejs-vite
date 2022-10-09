@@ -1,7 +1,7 @@
 import { Clock, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three';
-import { Entity } from '../components/Entity';
+import { Entity } from '../game/components/Entity';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { Snake } from '../components/Snake';
+import { Snake } from '../game/components/Snake';
 
 const clock = new Clock();
 
@@ -38,16 +38,17 @@ class Loop {
     // only call the getDelta function once per frame!
     const delta = clock.getDelta();
     this.controls.update();
- 
+
     for (const object of this.updatables) {
       if (object instanceof Snake) {
         var relativeCameraOffset = new Vector3(0, -50, 200);
-        var cameraOffset = relativeCameraOffset.applyMatrix4(object.getMesh().matrixWorld)
+        let head = object.getEntityMeshes()[0];
+        var cameraOffset = relativeCameraOffset.applyMatrix4(head.matrixWorld)
         let x = cameraOffset.x;
         let y = cameraOffset.y
         this.camera.position.setX(x);
         this.camera.position.setY(y);
-        this.camera.lookAt(object.getMesh().position);
+        this.camera.lookAt(head.position);
       }
       object.tick(delta);
     }

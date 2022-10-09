@@ -1,5 +1,5 @@
 import { WebGLRenderer } from 'three';
-import { Constants } from '../components/Constants';
+import { Constants } from '../util/Constants';
 
 function createRenderer(container: HTMLElement) {
 	const renderer = new WebGLRenderer({

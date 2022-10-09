@@ -1,12 +1,11 @@
 import { PerspectiveCamera, Scene, WebGLRenderer } from "three";
 import { createCamera } from "./components/camera";
-import { Constants } from "./components/Constants";
-import { Food } from "./components/Food";
-import { GameBoard } from "./components/GameBoard";
-import { GameState } from "./components/GameState";
 import { createLights } from "./components/lights";
 import { createScene } from "./components/scene";
-import { Snake } from "./components/Snake";
+import { Food } from "./game/components/Food";
+import { GameBoard } from "./game/components/GameBoard";
+import { GameState } from "./game/components/GameState";
+import { Snake } from "./game/components/Snake";
 import { Loop } from "./systems/Loop";
 import { createRenderer } from "./systems/renderer";
 import { Resizer } from "./systems/Resizer";
@@ -20,7 +19,7 @@ export class Game {
 	private renderer: WebGLRenderer;
 	private scene: Scene;
 	private camera: PerspectiveCamera;
-	private resizer: Resizer;
+
 	private loop: Loop;
 
 	constructor(container: HTMLElement) {
@@ -34,11 +33,11 @@ export class Game {
 		this.renderer = createRenderer(container);
 		const lights = createLights();
 		this.scene.add(...lights);
-		
-		this.resizer = new Resizer(container, this.camera, this.renderer);
-		this.loop = new Loop(this.camera, this.scene, this.renderer, [this.snake, this.food]);
 
+		new Resizer(container, this.camera, this.renderer);
+		this.loop = new Loop(this.camera, this.scene, this.renderer, [this.snake, this.food]);
 	}
+
 	private addGameBoardToScene() {
 		const tiles = this.board.getTiles();
 		const border = this.board.getBorder();
@@ -49,7 +48,7 @@ export class Game {
 			this.scene.add(tile);
 		}
 
-		this.scene.add(this.snake.getMesh());
+		this.scene.add(...this.snake.getEntityMeshes());
 	}
 
 	public startGame() {

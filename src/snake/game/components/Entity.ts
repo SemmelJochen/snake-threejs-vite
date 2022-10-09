@@ -1,6 +1,6 @@
 import { Mesh } from "three";
 
 export interface Entity {
-	getMesh(): Mesh;
+	getEntityMeshes(): Array<Mesh>;
 	tick(delta: number): void;
 }

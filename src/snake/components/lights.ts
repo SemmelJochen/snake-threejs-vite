@@ -1,5 +1,5 @@
-import { AmbientLight, DirectionalLight, PointLight } from 'three';
-import { Constants } from './Constants';
+import { AmbientLight, PointLight } from 'three';
+import { Constants } from '../util/Constants';
 
 function createLights() {
 	// Create a directional light
