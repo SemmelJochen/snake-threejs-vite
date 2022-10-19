@@ -1,4 +1,4 @@
-import { WebGLRenderer } from 'three';
+import { ACESFilmicToneMapping, sRGBEncoding, WebGLRenderer } from 'three';
 import { Constants } from '../util/Constants';
 
 function createRenderer(container: HTMLElement) {
@@ -7,6 +7,8 @@ function createRenderer(container: HTMLElement) {
 		canvas: container,
 	});
 
+	renderer.toneMapping = ACESFilmicToneMapping;
+	renderer.outputEncoding = sRGBEncoding;
 	renderer.physicallyCorrectLights = true;
 	renderer.setSize(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
 	renderer.setPixelRatio(window.devicePixelRatio);

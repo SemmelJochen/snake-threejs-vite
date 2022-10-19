@@ -12,12 +12,13 @@ class Loop {
   private renderer: WebGLRenderer;
   private updatables: Array<Entity>;
   private controls: OrbitControls;
-
+  private customTickHandler: Array<(delta: number) => void>;
   constructor(camera: PerspectiveCamera, scene: Scene, renderer: WebGLRenderer, updatables: Array<Entity>) {
     this.camera = camera;
     this.scene = scene;
     this.renderer = renderer;
     this.updatables = updatables;
+    this.customTickHandler = new Array();
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
   }
 
@@ -39,11 +40,12 @@ class Loop {
     // only call the getDelta function once per frame!
     const delta = clock.getDelta();
     this.controls.update();
+    this.customTickHandler.forEach((fn) => fn(delta));
 
     for (const object of this.updatables) {
       if (object instanceof Snake) {
         var relativeCameraOffset = Constants.CAMERA_POSITITON.clone();
-        let head = object.getEntityMeshes()[0];
+        let head = object.getEntityMeshes()[0]; // head of the snake
         var cameraOffset = relativeCameraOffset.applyMatrix4(head.matrixWorld)
         let x = cameraOffset.x;
         let y = cameraOffset.y
@@ -53,6 +55,9 @@ class Loop {
       }
       object.tick(delta);
     }
+  }
+  appendCustomTickHandler(fn: (delta: number) => void) {
+    this.customTickHandler.push(fn);
   }
 }
 

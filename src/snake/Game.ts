@@ -9,7 +9,7 @@ import { Snake } from "./game/components/Snake";
 import { Loop } from "./systems/Loop";
 import { createRenderer } from "./systems/renderer";
 import { Resizer } from "./systems/Resizer";
-
+import { Constants } from './util/Constants'
 export class Game {
 	private state: GameState = GameState.STOPPED;
 	private snake: Snake;
@@ -36,6 +36,7 @@ export class Game {
 
 		new Resizer(container, this.camera, this.renderer);
 		this.loop = new Loop(this.camera, this.scene, this.renderer, [this.snake, this.food]);
+		this.loop.appendCustomTickHandler(this.validateRules.bind(this));
 	}
 
 	private addGameBoardToScene() {
@@ -64,5 +65,38 @@ export class Game {
 	public activateHelpers() {
 
 	}
-
+	public validateRules(delta: number) {
+		this.hasSnakeEatenFood();
+		this.hasSnakeHitBorder();
+		this.hasSnakeHitItself();
+	}
+	public hasSnakeEatenFood() {
+		if (this.snake.getEntityMeshes()[0].position.equals(this.food.getEntityMeshes()[0].position)) {
+			this.snake.levelUp();
+			this.food.respawn();
+		}
+		return false;
+	}
+	public hasSnakeHitBorder() {
+		const boardLength = Constants.BOARD_SIZE * Constants.BLOCK_SIZE;
+		const snakeHead = this.snake.getEntityMeshes()[0];
+		if (snakeHead.position.x <= - boardLength / 2
+			|| snakeHead.position.x > boardLength / 2
+			|| snakeHead.position.y <= - boardLength / 2
+			|| snakeHead.position.y > boardLength / 2) {
+			this.stopGame();
+			return true;
+		}
+		return false;
+	}
+	public hasSnakeHitItself() {
+		const snakeHead = this.snake.getEntityMeshes()[0];
+		for (let i = 1; i < this.snake.getEntityMeshes().length; i++) {
+			if (snakeHead.position.equals(this.snake.getEntityMeshes()[i].position)) {
+				//this.stopGame();
+				return true;
+			}
+		}
+		return false;
+	}
 }

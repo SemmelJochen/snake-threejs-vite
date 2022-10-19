@@ -1,6 +1,5 @@
-import { BoxGeometry, Mesh, MeshStandardMaterial, Vector2, Vector3 } from "three";
+import { BoxGeometry, Mesh, MeshStandardMaterial, ShaderMaterial, Vector3 } from "three";
 import { Constants } from "../../util/Constants";
-import { fmod } from "../../util/Math";
 import { Entity } from "./Entity";
 
 class Direction {
@@ -35,7 +34,20 @@ export class Snake implements Entity {
 		this.initInputController();
 	}
 	private createHead() {
-		const material = new MeshStandardMaterial({ color: 0x00ff00 });
+		//const material = new MeshStandardMaterial({ color: 0x00ff00 });
+		const _vertexShader = `
+		void main() { 
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		}`
+		const _fragmentShader = `
+		void main() {
+			gl_FragColor = vec4( 0.0, 1.0, 0.0, 1.0 );
+		}`
+		const material = new ShaderMaterial({
+			uniforms: {},
+			vertexShader: _vertexShader,
+			fragmentShader: _fragmentShader,
+		})
 		const geometry = new BoxGeometry(Constants.BLOCK_SIZE, Constants.BLOCK_SIZE, Constants.BLOCK_SIZE);
 		const head = new Mesh(geometry, material);
 		head.position.setZ(Constants.Z_AXIS_FOCUS_POSITION);
